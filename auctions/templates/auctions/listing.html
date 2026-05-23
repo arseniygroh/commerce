@@ -1,0 +1,80 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div class="content">
+        <article class="listing">
+            {% if is_winner %}
+                <div class="winner-msg">Congratulations! You won the auction!</div>
+            {% endif %}
+            <div class="listing-body">
+                <div class="listing-info">
+                    {% if listing.img_url %}
+                        <img src="{{listing.img_url}}" alt="">
+                    {% endif %}
+                    <h4 class="listing-title">{{listing.title}}</h4>
+                    <div class="listing-price">${{listing.starting_bid}}</div>
+                    <div class="listing-author">Listed by {{listing.author}}</div>
+                    <div class="listing-desc">{{listing.description}}</div>
+                    {% if listing.category %}
+                        <div class="listing-category">Category: {{listing.category.name}}</div>
+                    {% else %}
+                        <div class="listing-category">Category: No category listed</div>
+                    {% endif %}
+                </div>
+                <div class="listing-actions">
+                    {% if user.is_authenticated %}
+                        <form class="watchlist-form" action="{% url 'watchlist' listing.id %}" method="post">
+                            {% csrf_token %}
+                            {% if user in listing.watchlist.all %}
+                                <button type="submit" class="watchlist-remove-btn">Remove from watchlist</button>
+                            {% else %}
+                                <button type="submit" class="watchlist-add-btn">Add to watchlist</button>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    {% if listing.is_active %}
+                        {% if user.is_authenticated %}
+                        <form class="bid-form" action="{% url 'bid' listing.id %}" method="post">
+                            {% csrf_token %}
+                            <div class="bid-info">There are already {{bids_count}} made and you can place a bid higher than {{highest}}</div>
+                            <input type="number" name="user-bid" placeholder="Enter your bid">
+                            <button type="submit" class="bid-btn">Place a bid</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                    <div class="listing-comments">
+                        {% if comments %}
+                            {% for comment in comments %}
+                                <div class="listing-comment">
+                                    <h4 class="listing-comment-title">Posted by <strong>{{comment.author.username}}</strong> on {{comment.date}}</h4>
+                                    <p class="listing-comment-content">
+                                        {{comment.content}}
+                                    </p>
+                                </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="no-comments">There are no comments yet</div>
+                        {% endif %}
+                    </div>
+                    {% if listing.is_active %}
+                        {% if user.is_authenticated %}
+                            <form class="comment-form" action="{% url 'comment' listing.id %}" method="post">
+                                {% csrf_token %}
+                                <textarea name="user-comment" placeholder="Enter you comment here..." cols="40" rows="4"></textarea>
+                                <button type="submit" class="comment-btn">Post a comment</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                    {% if listing.is_active %}
+                        {% if user == listing.author %}
+                            <form class="close-form" action="{% url 'close' listing.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="close-btn">Close auction</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    </div>
+{% endblock %}
